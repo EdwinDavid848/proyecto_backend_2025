@@ -582,16 +582,15 @@ async def registrar_producto(
 
 
 
-
 @app.put("/productosActualizar/{product_id}")
-async def actualizar_cliente(
+async def actualizar_producto(
     product_id: int,
     nombre: str = Form(None),
     descripcion: str = Form(None),
     precio: float = Form(None),
     tipo_unidad: str = Form(None),
     color: str = Form(None),
-    category: str = Form(None),  
+    category: str = Form(None),
     url: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
@@ -621,17 +620,21 @@ async def actualizar_cliente(
 
     # Si se sube una nueva imagen, actualizarla
     if url:
+        # Verificar el tipo de archivo de la imagen
         if url.content_type not in ["image/jpeg", "image/png"]:
             raise HTTPException(status_code=400, detail="Formato de archivo no soportado")
 
-        folder_path = "img"
-        file_location = os.path.join(folder_path, url.filename)
-        os.makedirs(folder_path, exist_ok=True)
+        # Leer los datos de la imagen
+        image_data = await url.read()
 
-        with open(file_location, "wb") as buffer:
-            buffer.write(await url.read())
+        # Subir la imagen a Cloudinary
+        result = cloudinary.uploader.upload(image_data, folder="productos")
 
-        producto_data.imagen_url = f"/images/{url.filename}"
+        # Obtener la URL de la imagen subida
+        imagen_url = result["secure_url"]
+
+        # Actualizar la URL de la imagen
+        producto_data.imagen_url = imagen_url
 
     # Guardar los cambios en la base de datos
     db.commit()
@@ -646,6 +649,7 @@ async def actualizar_cliente(
         "category": producto_data.category,
         "imagen_url": producto_data.imagen_url
     }}
+
 
 
 @app.delete("/productosEliminar/{product_id}")
