@@ -535,18 +535,25 @@ async def registrar_producto(
     url: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    # Verificar el tipo de archivo
     if url.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=400, detail="Formato de archivo no soportado")
 
+    # Verificar si el producto ya existe
     existing_product = db.query(Product).filter(Product.nombre == nombre, Product.color == color).first()
     if existing_product:
         raise HTTPException(status_code=400, detail="Ya existe un producto con el mismo nombre y color")
 
-    # Subir la imagen a Cloudinary
-    result = cloudinary.uploader.upload(await url.read(), folder="productos")
+    # Leer los datos de la imagen
+    image_data = await url.read()  # Leer los datos de la imagen desde la solicitud
 
+    # Subir la imagen a Cloudinary
+    result = cloudinary.uploader.upload(image_data, folder="productos")
+
+    # Obtener la URL de la imagen subida
     imagen_url = result["secure_url"]
 
+    # Crear el objeto de producto
     producto_data = Product(
         nombre=nombre,
         descripcion=descripcion,
@@ -557,10 +564,12 @@ async def registrar_producto(
         imagen_url=imagen_url
     )
 
+    # Guardar el producto en la base de datos
     db.add(producto_data)
     db.commit()
     db.refresh(producto_data)
 
+    # Responder con la información del producto registrado
     return {
         "status": "Producto registrado exitosamente",
         "data": {
