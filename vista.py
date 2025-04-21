@@ -284,7 +284,6 @@ async def update_password(data: UpdatePassword, db: Session = Depends(get_db)):
 
 app.mount("/images", StaticFiles(directory="img"), name="images")
 
-
 @app.get("/mostrarimagenes")
 def obtener_imagenes(limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
     productos = (
@@ -305,7 +304,7 @@ def obtener_imagenes(limit: int = 10, offset: int = 0, db: Session = Depends(get
             "tipo_unidad": producto.tipo_unidad,
             "color": producto.color,
             "category": producto.category,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url": producto.imagen_url  # No es necesario concatenar con localhost
         }
         for producto in productos
     ]
