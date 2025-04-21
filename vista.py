@@ -522,8 +522,6 @@ def obtener_imagenes(nombre: str, db: Session = Depends(get_db)):
     }
 
 
-result = cloudinary.uploader.upload(image_data, folder="productos")
-
 @app.post("/insertardos")
 async def registrar_producto(
     nombre: str = Form(...),
@@ -582,6 +580,7 @@ async def registrar_producto(
             "imagen_url": imagen_url
         }
     }
+
 
 
 
