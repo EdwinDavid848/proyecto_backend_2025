@@ -322,7 +322,7 @@ def obtener_imagenes(category: str, limit: int = 10, offset: int = 0, db: Sessio
             "tipo_unidad": producto.tipo_unidad,
             "color": producto.color,
             "category": producto.category,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url":producto.imagen_url 
         }
         for producto in productos
     ]
@@ -341,7 +341,7 @@ def obtener_imagenes(id: int, db: Session = Depends(get_db)):
             "tipo_unidad": producto.tipo_unidad,
             "color": producto.color,
             "category": producto.category,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url": producto.imagen_url 
         }
     else:
         return {"error": "Producto no encontrado"}, 404
@@ -371,7 +371,7 @@ def ver_carrito(email: str, session: Session = Depends(get_db)):
                 "cantidad": item.cantidad,
                 "precio": producto.precio,
                 "total": producto.precio * item.cantidad,
-                "imagen_url": f"http://localhost:8000{producto.imagen_url}"  # Añadir URL completa para la imagen
+                "imagen_url": producto.imagen_url   # Añadir URL completa para la imagen
             })
     
     return carrito_respuesta
@@ -477,7 +477,7 @@ def obtener_imagenes(db: Session = Depends(get_db)):
             "color": producto.color,
             "category": producto.category,
             "activo" : producto.activo,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url": producto.imagen_url 
         }
         for producto in productos
     ]
@@ -496,7 +496,7 @@ def obtener_imagenes(category: str, db: Session = Depends(get_db)):
             "color": producto.color,
             "category": producto.category,
             "activo" : producto.activo,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url": producto.imagen_url 
         }
         for producto in productos
     ]
@@ -517,7 +517,7 @@ def obtener_imagenes(nombre: str, db: Session = Depends(get_db)):
             "color": producto.color,
             "category": producto.category,
             "activo" : producto.activo,
-            "imagen_url": f"http://localhost:8000{producto.imagen_url}"
+            "imagen_url": producto.imagen_url 
     }
 
 
