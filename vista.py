@@ -1210,7 +1210,6 @@ async def pagar_class(payment: PayClass, db: Session = Depends(get_db)):
 
 #GESTION MURAL====================================================================
 
-
 @app.post('/mural/', response_model=None)
 async def agregarmural(
     email: str = Form(...),
@@ -1228,25 +1227,18 @@ async def agregarmural(
     if foto.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=400, detail="Formato de archivo no soportado")
 
-    # Ruta de guardado del archivo
-    folder_path = "img"
-    file_location = os.path.join(folder_path, foto.filename)
-    
-    # Crear la carpeta si no existe
-    os.makedirs(folder_path, exist_ok=True)
+    result = cloudinary.uploader.upload(await foto.read(), folder="productos")
 
-    # Guardar el archivo en el servidor
-    with open(file_location, "wb") as buffer:
-        buffer.write(await foto.read())
 
-    # Crear una URL accesible para la imagen
-    foto_url = f"/images/{foto.filename}"
+    imagen_url = result["secure_url"]
+
+
     
     nuevo = Publication(
         id_user=dat.id,
         titulo=titulo,
         descripcion=descripcion,
-        foto=foto_url
+        foto=imagen_url
     )
     
     db.add(nuevo)
@@ -1258,8 +1250,11 @@ async def agregarmural(
         "id_user": nuevo.id_user,
         "titulo": nuevo.titulo,
         "descripcion": nuevo.descripcion,
-        "foto": nuevo.foto
+        "foto": imagen_url
     }
+
+
+
 
 
 
@@ -1268,7 +1263,7 @@ async def editmural(
     id: int,
     titulo: str = Form(...),
     descripcion: str = Form(...),
-    foto: UploadFile = File(None),  # La imagen es opcional en el método PUT
+    foto: UploadFile = File(None),  # La imagen es opcional
     db: Session = Depends(get_db)
 ):
     # Buscar la publicación en la base de datos
@@ -1281,25 +1276,14 @@ async def editmural(
     mural.titulo = titulo
     mural.descripcion = descripcion
 
-    # Si se proporciona una nueva imagen, procesarla
+    # Si se proporciona una nueva imagen, subirla a Cloudinary
     if foto:
-        # Validar el tipo de archivo
         if foto.content_type not in ["image/jpeg", "image/png"]:
             raise HTTPException(status_code=400, detail="Formato de archivo no soportado")
 
-        # Ruta de guardado del archivo
-        folder_path = "img"
-        file_location = os.path.join(folder_path, foto.filename)
-        
-        # Crear la carpeta si no existe
-        os.makedirs(folder_path, exist_ok=True)
-
-        # Guardar el archivo en el servidor
-        with open(file_location, "wb") as buffer:
-            buffer.write(await foto.read())
-
-        # Crear una URL accesible para la nueva imagen
-        mural.foto = f"/images/{foto.filename}"
+        result = cloudinary.uploader.upload(await foto.read(), folder="productos")
+        imagen_url = result["secure_url"]
+        mural.foto = imagen_url
 
     # Guardar los cambios en la base de datos
     db.commit()
@@ -1313,7 +1297,6 @@ async def editmural(
         "descripcion": mural.descripcion,
         "foto": mural.foto
     }
-
 
 
 @app.delete("/deletemural/{id}")
