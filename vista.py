@@ -1321,7 +1321,7 @@ async def publicaciones(db: Session = Depends(get_db)):
             "email": db.query(User).filter(User.id == publication.id_user).first().email,
             "titulo": publication.titulo,  # Cambiado a 'titulo'
             "descripcion": publication.descripcion,  # Cambiado a 'descripcion'
-            "foto": f"http://localhost:8000{publication.foto}"  # Cambiado a 'foto'
+            "foto": publication.foto # Cambiado a 'foto'
         }
         for publication in allpublications
     ]
@@ -1342,7 +1342,7 @@ async def buscarpublic(busca: str, db: Session = Depends(get_db)):
             "email": db.query(User).filter(User.id == publication.id_user).first().email,
             "titulo": publication.titulo,
             "descripcion": publication.descripcion,
-            "foto": f"http://localhost:8000{publication.foto}"
+            "foto": publication.foto
         }
         for publication in allpublications
     ]
@@ -1371,7 +1371,7 @@ async def buscarpublic(busca: str, db: Session = Depends(get_db)):
             "email": user.email,
             "titulo": publication.titulo,
             "descripcion": publication.descripcion,
-            "foto": f"http://localhost:8000{publication.foto}"
+            "foto": publication.foto
         }
         for publication in allpublications
     ]
@@ -1386,7 +1386,7 @@ async def publicaciones(db: Session = Depends(get_db)):
             "email": db.query(User).filter(User.id == publication.id_user).first().email,
             "titulo": publication.titulo,  # Cambiado a 'titulo'
             "descripcion": publication.descripcion,  # Cambiado a 'descripcion'
-            "foto": f"http://localhost:8000{publication.foto}"  # Cambiado a 'foto'
+            "foto": publication.foto  # Cambiado a 'foto'
         }
         for publication in allpublications
     ]
