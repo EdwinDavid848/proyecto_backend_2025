@@ -890,52 +890,44 @@ async def consultDatesClass(db: Session = Depends(get_db)):
     ]
 
 
-
-# Insertar clase
 @app.post("/insertClass/")
 async def insert_class(
-    titulo:str=Form(...),
-    descripcion:str=Form(...),
+    titulo: str = Form(...),
+    descripcion: str = Form(...),
     profesor: str = Form(...), 
     fecha: str = Form(...), 
-    comienzo:time = Form(...), 
-    final:time = Form(...), 
-    precio:float = Form(...), 
-    imagen:UploadFile = File(...),
-    db: Session = Depends(get_db)):
+    comienzo: time = Form(...), 
+    final: time = Form(...), 
+    precio: float = Form(...), 
+    imagen: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
     existing_class = db.query(Class).filter(Class.titulo == titulo).first()
     if existing_class:
         raise HTTPException(status_code=400, detail="La clase ya está registrada")
-    
-    # Ruta de guardado del archivo
-    folder_path = "img"
-    file_location = os.path.join(folder_path, imagen.filename)
-    
-    
-    # Guardar el archivo en el servidor
-    with open(file_location, "wb") as buffer:
-        buffer.write(await imagen.read())
 
-    # Crear una URL accesible para la imagen
-    img = f"/images/{imagen.filename}"
-    
+    if imagen.content_type not in ["image/jpeg", "image/png"]:
+        raise HTTPException(status_code=400, detail="Formato de imagen no soportado")
+
+    result = cloudinary.uploader.upload(await imagen.read(), folder="clases")
+    imagen_url = result["secure_url"]
+
     new_class = Class(
-        titulo = titulo,
-        descripcion = descripcion,
-        profesor = profesor,
-        fecha = fecha,
-        comienzo = comienzo,
-        final = final,
-        precio = precio,
-        imagen = img
+        titulo=titulo,
+        descripcion=descripcion,
+        profesor=profesor,
+        fecha=fecha,
+        comienzo=comienzo,
+        final=final,
+        precio=precio,
+        imagen=imagen_url
     )
-    
+
     db.add(new_class)
     db.commit()
     db.refresh(new_class)
     return new_class
 
-# Editar clase
 @app.put("/editClass/{titulo}")
 async def edit_class(
     titulo: str,
@@ -946,21 +938,18 @@ async def edit_class(
     comienzo: str = Form(...),
     final: str = Form(...),
     precio: float = Form(...),
-    imagen: UploadFile = File(None),  # Imagen opcional
+    imagen: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    # Buscar la clase en la base de datos por título
     existing_class = db.query(Class).filter(Class.titulo == titulo).first()
-    
     if not existing_class:
         raise HTTPException(status_code=404, detail="Clase no registrada")
 
-    # Verificar si ya existe una clase con el nuevo título proporcionado
     repit_class = db.query(Class).filter(Class.titulo == new_titulo).first()
     if repit_class and repit_class.id != existing_class.id:
         raise HTTPException(status_code=400, detail="Clase ya registrada con ese título")
-    
-    # Actualizar campos de texto
+
+    # Actualizar campos
     existing_class.titulo = new_titulo
     existing_class.descripcion = descripcion
     existing_class.profesor = profesor
@@ -969,31 +958,16 @@ async def edit_class(
     existing_class.final = final
     existing_class.precio = precio
 
-    # Si se proporciona una nueva imagen, procesarla
     if imagen:
-        # Validar el tipo de archivo
         if imagen.content_type not in ["image/jpeg", "image/png"]:
-            raise HTTPException(status_code=400, detail="Formato de archivo no soportado")
+            raise HTTPException(status_code=400, detail="Formato de imagen no soportado")
 
-        # Ruta de guardado del archivo
-        folder_path = "img"
-        file_location = os.path.join(folder_path, imagen.filename)
-        
-        # Crear la carpeta si no existe
-        os.makedirs(folder_path, exist_ok=True)
+        result = cloudinary.uploader.upload(await imagen.read(), folder="clases")
+        imagen_url = result["secure_url"]
+        existing_class.imagen = imagen_url
 
-        # Guardar el archivo en el servidor
-        with open(file_location, "wb") as buffer:
-            buffer.write(await imagen.read())
-
-        # Crear una URL accesible para la nueva imagen
-        existing_class.imagen = f"/images/{imagen.filename}"
-
-    # Guardar los cambios en la base de datos
     db.commit()
     db.refresh(existing_class)
-
-    # Respuesta con la información actualizada de la clase
     return existing_class
 
 # Cambiar estado de habilitar/deshabilitar clase
