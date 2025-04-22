@@ -884,7 +884,7 @@ async def consultDatesClass(db: Session = Depends(get_db)):
             "final": Class.final,
             "precio": Class.precio,
             "habilitado":Class.habilitado,
-            "imagen": f"http://localhost:8000{Class.imagen}"
+            "imagen": Class.imagen
         }
         for Class in allClass
     ]
