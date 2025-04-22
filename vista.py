@@ -235,7 +235,7 @@ async def update_user_data(campo: str,email: str,data: UpdateRequest, db: Sessio
     if not db_user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado en la base de datos")
 
-    if campo not in ['nombre','email', 'telefono', ]:
+    if campo not in ['nombre','email', 'telefono','rol']:
         raise HTTPException(status_code=400, detail="Campo no válido")
 
     if campo == 'email':
